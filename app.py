@@ -7,17 +7,14 @@ from io import BytesIO
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Configure the page
 st.set_page_config(page_title="AutoML Pipeline", layout="wide")
 
-# Title and description
 st.title("AutoML Pipeline")
 st.write("""
 This application automatically builds and evaluates machine learning models for your dataset.
 Upload a CSV file, select the target column, and let the system do the rest!
 """)
 
-# Sidebar for file upload and parameters
 with st.sidebar:
     st.header("Upload Data")
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
@@ -27,16 +24,13 @@ with st.sidebar:
             df = pd.read_csv(uploaded_file)
             st.success("File uploaded successfully!")
             
-            # Show basic info
             st.subheader("Dataset Info")
             st.write(f"Shape: {df.shape}")
             st.write("First 5 rows:")
             st.dataframe(df.head())
             
-            # Select target column
             target_col = st.selectbox("Select target column", df.columns)
             
-            # Advanced options
             st.subheader("Advanced Options")
             n_trials = st.slider("Number of optimization trials", 10, 100, 30)
             
@@ -51,13 +45,11 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Error reading file: {str(e)}")
 
-# Main content area
 if 'results' in st.session_state:
     results = st.session_state.results
     
     st.header("Model Results")
     
-    # Show metrics based on task type
     if results['task_type'] == 'classification':
         st.subheader("Classification Metrics")
         
@@ -75,7 +67,7 @@ if 'results' in st.session_state:
             if results['metrics']['roc_curve']:
                 st.image(BytesIO(base64.b64decode(results['metrics']['roc_curve'])), 
                          caption="ROC Curve")
-    else:  # regression
+    else: 
         st.subheader("Regression Metrics")
         
         col1, col2 = st.columns(2)
@@ -91,7 +83,6 @@ if 'results' in st.session_state:
             st.image(BytesIO(base64.b64decode(results['metrics']['actual_vs_predicted'])), 
                      caption="Actual vs Predicted")
     
-    # Feature importance and SHAP plots
     st.header("Model Interpretability")
     
     col1, col2 = st.columns(2)
@@ -106,7 +97,6 @@ if 'results' in st.session_state:
             st.image(BytesIO(base64.b64decode(results['shap_summary'])), 
                      caption="SHAP Summary Plot")
     
-    # Sample predictions with explanations
     st.header("Sample Predictions with Explanations")
     
     if results['X_test_processed'].shape[0] > 0:
@@ -126,7 +116,7 @@ if 'results' in st.session_state:
             st.subheader(f"Prediction: {pred_class}")
             st.write("Class probabilities:")
             st.write(class_probs)
-        else:  # regression
+        else:
             pred = results['best_model'].predict(results['X_test_processed'][sample_idx:sample_idx+1])
             actual = results['y_test'][sample_idx]
             
@@ -134,7 +124,6 @@ if 'results' in st.session_state:
             st.write(f"Actual value: {actual:.4f}")
             st.write(f"Error: {abs(pred[0] - actual):.4f}")
         
-        # Generate SHAP force plot for this sample
         from nec_functions import generate_shap_force_plot
         force_plot = generate_shap_force_plot(
             results['best_model'],
